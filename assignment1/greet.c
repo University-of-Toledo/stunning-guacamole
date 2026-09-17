@@ -8,5 +8,5 @@
 
 void greet(const char *name)
 {
-    printf("Hello, %s! Welcome to CSET 3150.\n", name);
+    printf("Hello, %s! Welcome to Class.\n", name);
 }
