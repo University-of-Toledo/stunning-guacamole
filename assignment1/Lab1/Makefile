@@ -1,3 +1,7 @@
+// Mike Fitch
+// Lab 1- Hello and the toolchain
+// the code to make sure everything runs smooth and to link the file system. 
+
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror -std=c11
 TARGET = Hello
