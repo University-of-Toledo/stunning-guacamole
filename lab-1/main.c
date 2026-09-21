@@ -2,11 +2,20 @@
 //Lab 1 - Hello and ToolChain
 //Introductory lab to C programming and getting familiar with github
 
-#include <stdlib.h>
+#include <stdio.h>
 #include "greet.h"
 
-int main (void)
+int main(int argc, char *argv[])
 {
-    greet("student");
-    return EXIT_SUCCESS;
+    const char *name = "Fiza";
+
+    if (argc > 1) {
+        name = argv[1];
+    } else {
+        printf("Hello %\s!\n", name);
+    }
+
+    greet(name);
+
+    return 0;
 }
