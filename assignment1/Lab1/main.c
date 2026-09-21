@@ -1,3 +1,7 @@
+// Mike Fitch
+// Lab 1 Hello and the toolchain
+// bringing the function into the file 
+
 #include <stdio.h>
 #include "greet.h"
 
