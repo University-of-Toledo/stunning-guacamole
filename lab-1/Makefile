@@ -1,3 +1,7 @@
+//Name: Fiza Shaikh
+//Lab 1 - Hello and ToolChain
+//Code to link multi file system
+
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror -std=c11
 TARGET = hello
