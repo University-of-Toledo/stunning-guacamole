@@ -1,3 +1,7 @@
+// Mike Fitch
+// Lab 1 
+// putting the fucntion into the file
+
 #include <stdio.h>
 #include "greet.h"
 
