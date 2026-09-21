@@ -1,4 +1,4 @@
-#indef Greet_H
+#ifndef Greet_H
 #define Greet_H
 
 void greet(const char *name);
