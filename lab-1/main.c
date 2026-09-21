@@ -1,7 +1,6 @@
 //Name: Fiza Shaikh
 //Lab 1 - Hello and ToolChain
-//Introductory lab to C programming and getting familiar with github
-
+//calling the function in this file
 #include <stdio.h>
 #include "greet.h"
 
