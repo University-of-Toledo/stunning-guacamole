@@ -9,6 +9,6 @@ void greet(const char *name)
 {
     if (name != NULL)
     {
-        printf("Hello, %s Great job!.\n", name);
+        printf("Welcome to EET 3150\n", name);
     }
 }
