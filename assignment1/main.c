@@ -20,5 +20,8 @@ int main(int argc, char *argv[])
     greet(name);
 
     printf("Edited");
+
+    int numer = 10;
+    numer++;
     return 0;
 }
