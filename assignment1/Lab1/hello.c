@@ -6,6 +6,6 @@
 #include <stdlib.h>
 int displayhello(void)
 {
-    printf("Hello, Welcome to Lab 1.\n");
+    printf("Hello, Mike\n");
     return EXIT_SUCCESS;
 }
