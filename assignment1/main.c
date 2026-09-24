@@ -19,9 +19,11 @@ int main(int argc, char *argv[])
 
     greet(name);
 
-    printf("Edited");
+    printf("Edited\n");
 
     int numer = 10;
     numer++;
+
+    printf("%d", numer);
     return 0;
 }
