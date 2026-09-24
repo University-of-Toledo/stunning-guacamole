@@ -1,0 +1,19 @@
+
+CC= gcc
+CFLAGS = -wall -wextra -werror -std=cll
+TARGET= hello
+SRCS=main.c greet.C
+OBJS=$(SRCS:.C=.O)
+
+.PHONY:all clean
+
+all: $(TARGET)
+
+$(TARGET): $(OBJS)
+    $(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
+    
+%.O: %.c
+    $(CC) $(CFLAGS) -c $< -o $@ 
+    
+clean:
+    rm -f $(OBJS) $(TARGET)

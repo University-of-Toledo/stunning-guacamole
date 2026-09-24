@@ -1,12 +1,9 @@
-/*
- * greet.c
- * CSET 3150 - Lab 1 demo (Hello and the Toolchain)
- * Implementation of the greeting module declared in greet.h.
- */
+
 #include <stdio.h>
 #include "greet.h"
+// this file is clearing the memory and printing/sending new material to the interface.
 
-void greet(const char *name)
-{
-    printf("Hello, %s! Welcome to Class.\n", name);
-}
+ void greet(const char *name)
+    { 
+        printf("Hello, %s! Welcome to class, EET 3150. \n",name);
+    }
