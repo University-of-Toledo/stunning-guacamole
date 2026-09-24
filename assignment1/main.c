@@ -19,5 +19,6 @@ int main(int argc, char *argv[])
 
     greet(name);
 
+    printf("Edited");
     return 0;
 }
