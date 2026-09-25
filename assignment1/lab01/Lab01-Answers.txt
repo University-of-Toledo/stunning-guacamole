@@ -1,0 +1,54 @@
+ToolChain & Envio Qustions
+
+Q1.: Name the four stages a C source file passes through on its way to an executable, and what each stage takes as input and produces as output?
+
+The four stages are Preprocessing, Compilation, Assembly, and Linking.
+
+1.Preprocessing will take the raw .c files with every include and comment to produce with the includes expanded and the comments removed.
+
+2.Compilation takes the preprocessed files from the previous step and translates it into assembly code.
+
+3.Assembly takes the assembly code from compilation and probuces an object .o file. 
+
+4. Linking takes the object files and any called for libraries to produce and executable file with access across several files.
+
+---
+
+Q2. :What does -Wall add to a gcc invocation? What does -Wextra add beyond -Wall? What does -Werror change about how warnings are treated?
+
+-Wall turns on common warnings like unused variables, format-string mismatchs, and other common errors.
+
+-Wextra includes extra error like unused function paramaters, and stricter sign comparison checks.
+
+-Werror turns the previous warnings into compile errors not allowing compilation till they are fixed.
+
+---
+
+Q3.: What is the difference between compiling with gcc -c versus without -c?
+
+Running gcc -c goes through every step besides linking and will produce a movable object file allowing compilation of multiple files before linking in the future.
+Running gcc by itself causing the computer to go through every step including linking and produces the executable file without leaving object files.
+
+---
+
+Q4.: In a Makefile rule, what are the target, the prerequisites, and the recipe?
+
+The target is the file that the rule will produce or the thing beting built. The prerequisites are the files that the target depends on the run. And the revipe is the commands that run and build the target
+using the prerequisites.
+
+
+---
+
+Q5.: Why does make usually avoid rebuilding a target that is already up to date, and how does it decide?
+
+Rebuilding everytime wouldn't make sent in a project with more than one source file and seperatly compiling files. Make then compares the existing target with its own to see if it is up to date. If there
+isn't a target yet it will make one, if there is but it is different than the one already made it'll remake it, or if the prerequite is out of date. 
+
+---
+
+Q6.: What is the difference between a local git commit and pushing that commit - why can a commit exist and not count as submitted work for this course?
+
+The local commit simply changes the local pi's files on your computer, until that change has been pushed to the git repo for this class it can't be graded since the professor does not have access to our
+individual Raspberry Pi files and only whatever we have pushed to the github repo.
+
+
