@@ -1,0 +1,30 @@
+git fetch
+git pull
+git status
+git add .
+git push
+git commit
+cd 
+ls
+mkdir
+touch
+git checkout
+rm -r <dir> removes directory
+
+make / clean cleans files rms ob files
+make 
+make run runs file
+can add make file to folder with main.c folder
+
+
+%d int
+%f float or double 
+ %c ;&grade <-- needs space in order to read character do the same for strings
+%31s ;name up to 31 characters for string, if not included can add as many as possible
+
+stdin reads inputs
+stdout sends out
+
+scanf("data type", container) always assumes stdin (scan input console in a format)
+clearline() puts a line return and some spacing
+
