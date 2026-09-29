@@ -1,15 +1,17 @@
-git fetch
-git pull
-git status
+how to add files
 git add .
+git commit -m "messege"
 git push
-git commit
-cd 
-ls
-mkdir
-touch
-git checkout
-rm -r <dir> removes directory
+
+git fetch: pulls changes without overwriting your files
+git pull: pulls all changes from repo to your device
+git status: shows all changes since last push/pull
+cd: changes the directory your in
+ls: shows files in current folder
+mkdir: creates folder
+touch: creates file
+git checkout <branch>: changes to chosen branch
+rm -r <dir>: removes directory(folder)
 
 make / clean cleans files rms ob files
 make 
