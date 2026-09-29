@@ -5,20 +5,10 @@
  * across multiple translation units (main.c + greet.c + greet.h), built
  * with a Makefile, and compiled clean under -Wall -Wextra -Werror.
  */
-#include <stdio.h>
-#include "greet.h"
+#include "hello.h"
 
-int main(int argc, char *argv[])
+int main(void)
 {
-    const char *name = "student";
-
-    if (argc > 1) {
-        name = argv[1];
-    } else {
-        printf("(tip: pass your name as an argument, e.g. ./hello Merl)\n");
-    }
-
-    greet(name);
-
-    return 0;
+    greet("John");
+      return 0;
 }
