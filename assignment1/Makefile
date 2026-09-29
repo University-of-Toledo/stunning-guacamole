@@ -1,18 +1,18 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror -std=c11
-TARGET = hello
-SRCS = main.c greet.c
-OBJS = $(SRCS:.c=.o)
 
 .PHONY: all clean
 
-all: $(TARGET)
+all: hello multifile
 
-$(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
+hello: hello.c
+	$(CC) $(CFLAGS) hello.c -o hello
+
+multifile: main.o greet.o
+	$(CC) $(CFLAGS) -o multifile main.o greet.o 
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(OBJS) $(TARGET)
+	rm -f *.o hello multfile
