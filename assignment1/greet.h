@@ -4,11 +4,9 @@
  * Public interface for the greeting module used to demonstrate splitting
  * a program across multiple source/header files.
  */
-#ifndef GREET_H
-#define GREET_H
+#ifndef hello_h
+#define hello_h
 
-/* Prints a greeting for the given name to stdout, followed by a newline.
- * name must be a non-NULL, null-terminated string. */
-void greet(const char *name);
+void greet (const char *John);
 
-#endif /* GREET_H */
+#endif
