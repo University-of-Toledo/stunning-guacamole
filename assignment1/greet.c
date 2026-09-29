@@ -1,6 +1,6 @@
 
 #include <stdio.h>
-#include "hello.h"
+#include "greet.h"
 
 void  greet (const char *John)
 {
