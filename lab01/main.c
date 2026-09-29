@@ -3,15 +3,9 @@
 
 int main(int argc, char *argv[])
 {
-    const char *name = "student";
+	const char *name = "Joseph";
 
-    if (argc > 1) {
-        name = argv[1];
-    } else {
-        printf("(tip: pass your name as an argument, e.g. ./hello Merl)\n");
-    }
+	greet(name);
 
-    greet(name);
-
-    return 0;
+	return 0;
 }
