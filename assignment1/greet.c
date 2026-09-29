@@ -4,9 +4,10 @@
  * Implementation of the greeting module declared in greet.h.
  */
 #include <stdio.h>
-#include "greet.h"
+#include "hello.h"
 
-void greet(const char *name)
+void  greet (const char *John)
 {
-    printf("Hello, %s! Welcome to class.\n", name);
+    printf("Hello, %s! Welcome to Class.\n", John);
+    
 }
