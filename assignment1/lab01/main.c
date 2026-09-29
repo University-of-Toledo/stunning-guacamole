@@ -11,7 +11,7 @@
 int main(int argc, char *argv[])
 {
     const char *name = "student";
-
+	printf("hello world"
     if (argc > 1) {
         name = argv[1];
     } else {
