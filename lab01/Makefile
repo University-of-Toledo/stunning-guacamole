@@ -1,19 +1,18 @@
-<<<<<<< HEAD
-
-=======
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror
+CFLAGS = -Wall -Wextra -Werror -std=c11
+TARGET = hello
+SRCS = main.c greet.c
+OBJS = $(SRCS:.c=.o)
 
-all: hello greet
+.PHONY: all clean
 
-hello: hello.c
-	$(CC) $(CFLAGS) -o hello hello.c
-greet: main.o greet.o
-	$(CC) $(CFLAGS) -o greet main.o greet.o
-main.o: main.c greet.h
-	$(CC) $(CFLAGS) -c main.c
-greet.o: greet.c greet.h
-	$(CC) $(CFLAGS) -c greet.c
+all: $(TARGET)
+
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
 clean:
-	rm -f hello greet main.o greet.o
->>>>>>> main
+	rm -f $(OBJS) $(TARGET)
