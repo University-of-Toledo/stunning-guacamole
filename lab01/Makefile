@@ -1,18 +1,16 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Werror -std=c11
-TARGET = hello
-SRCS = main.c greet.c
-OBJS = $(SRCS:.c=.o)
+CFLAGS = -Wall -Wextra -Werror
 
-.PHONY: all clean
+all: hello greet
 
-all: $(TARGET)
+hello: hello.o
+	$(CC) $(CFLAGS) -c main.c
+greet: main.o greet.o
+	$(CC) $(Cflags) -o greet main.o greet.o
+hello.o: hello.c
+	$(CC) $(CFLAGS) -c main.c
+greet.o: greet.c greet.h
+	$(CC) $(CFLAGS) -c greet.c
+clean: 
+	rm -f hello greet *.o
 
-$(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS)
-
-%.o: %.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-clean:
-	rm -f $(OBJS) $(TARGET)
