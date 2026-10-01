@@ -1,0 +1,32 @@
+1. Q1: Name the four stages a C source file passes through on its way to an executable, and what each stage takes as input and produces 
+as output.
+
+The 4 stages that a C source file passes through are Preprocessing, Compilation, Assembly, and Linking. Preprocessing takes raw .c source 
+and produces pure C source with #include/#define directives being expanded. Compilation takes that pure C source and produces assembly code.
+Assembly takes that code and creates an object file (.o). Finally, linking takes the object files plus any needed libraries and 
+produces a single executable line across file boundaries.
+
+
+2. Q2: What does -Wall add to a gcc invocation? What does -Wextra add beyond -Wall? What does -Werror change about how warnings are treated?
+-Wall adds a broad set of common warnings to the code that looks for things like unused variables, suspicious comparisons, 
+format-string mismatches, and other common warnings. -Wextra adds additional warnings that -Wall doesn’t over, warnings like unused 
+function parameters, stricter sign-comparison checks, and more. -Werror makes it so that if the file has an error, it does not compile 
+until all errors have been resolved.
+
+3. Q3: What is the difference between compiling a file with gcc -c versus without -c?
+Compiling a file with gcc -c goes through the preprocessing, compilation, and assembly stages and produces a relocatable object file but 
+doesn’t go through the linking stage. Compiling a file without the -c goes through all of the stages including linking and produces a 
+complete executable file.
+
+4. Q4: In a Makefile rule, what are the target, the prerequisites, and the recipe?
+In a make file the target is file the rule produces. The prerequisites are the files that the target depends on. The recipe is the shell 
+command(s) on the indented line.
+
+5. Q5: Why does make usually avoid rebuilding a target that is already up to date, and how does it decide?
+Make avoids rebuilding a target because if a target already exists and is newer than every one of the prerequisites, make considers it 
+up to date and skips the recipe entirely. Make will rebuild a target if it doesn’t exist yet, or if any direct prerequisite is newer 
+than the target.
+
+6. Q6: What is the difference between a local git commit and pushing that commit — why can a commit exist and still not count as submitted work for this course?
+The local git commit only changes the history of your local git repository and it doesn’t exist until you push it. Pushing the commit 
+sends the committed changes to the remote repository.
