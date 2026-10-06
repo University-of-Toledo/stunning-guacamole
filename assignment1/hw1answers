@@ -1,0 +1,9 @@
+1. Identify the 4 stages of building a C program and what each stage produces?
+Preprocess - Raw C source file is stripped of its comments and has its #include and #define elements expanded.
+Compilation - Converts the proprocess file into an assembly file for the Rasberry Pi OS.
+Assembly - Converts the assembly code into an .o-file, this is called machine code. The machine code is now binary code.
+Linking - Combines 1 or more object files into the exeutable program in the terminal. 
+2. Explain the purposes of -Wall, -Wextra, and -Werror?
+-Wall - identifies to the user unusual programming (typing) formats like incorrect stringing and unused or misused variables.
+-Wextra - identifies additional warnings to the user like stricter sign checking and function parameters.
+-Werror - reacts to the warnings listed above. Each warning is noted and will not build the program until each fault is corrected.
