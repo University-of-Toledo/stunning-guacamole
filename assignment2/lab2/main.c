@@ -10,11 +10,11 @@
 int main()
 {
     /*initializing variables used for holding inputs*/
-    float a = 0;
-    float b = 0;
-    float c = 0;
-    float answer = 0;
-    int choice =0;
+    double feet = 0;
+    double ounces = 0;
+    double lbs = 0;
+    double answer = 0;
+    int choice = 0;
     
     /*main loop that will repeat till the user inputs 5*/
     while(choice != 5)
@@ -31,16 +31,15 @@ int main()
              *then it ends the loop and continue moves the code back to the start
              */
             while(getchar() != '\n');
-            continue;
         }    
         
         /*feet to meter conversion function call*/
         if(choice == 1)
         {
             printf("Input feet\n");
-            scanf("%f", &a);
-            answer = feet_meter(a);
-            printf("%.2f meters\n\n" , answer);
+            scanf("%lf", &feet);
+            answer = feet_meter(feet);
+            printf("%.2lf meters\n\n" , answer);
             
         }
         
@@ -48,9 +47,9 @@ int main()
         if(choice == 2)
         {    
             printf("Input ounces\n");
-            scanf("%f", &b);
-            answer = ounce_litre(b);
-            printf("%.2f litres\n\n" , answer);
+            scanf("%lf", &ounces);
+            answer = ounce_litre(ounces);
+            printf("%.2lf litres\n\n" , answer);
             
         }
         
@@ -58,9 +57,9 @@ int main()
         if(choice == 3)
         {
             printf("Input pounds\n");
-            scanf("%f", &c);
-            answer = lbs_kilo(c);
-            printf("%.2f kilograms\n\n" , answer);
+            scanf("%lf", &lbs);
+            answer = lbs_kilo(lbs);
+            printf("%.2lf kilograms\n\n" , answer);
         }
         
         /*displays how division is done by the compiler when it uses doubles or integers*/
@@ -71,7 +70,7 @@ int main()
             double y = 2;
             double doublediv = z / y;
             printf("This is integer division using 7/2 = %d\n\n" , intdiv);
-            printf("This is double division 7/2 = %.2f\n\n" , doublediv);
+            printf("This is double division 7/2 = %.2lf\n\n" , doublediv);
         }
             
     }

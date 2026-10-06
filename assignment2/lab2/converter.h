@@ -5,9 +5,9 @@
  */
 
 /*has the declarations of functions created in converter.c*/
-float feet_meter(float a);
+double feet_meter(double feet);
 
-float ounce_litre(float b);
+double ounce_litre(double ounces);
 
-float lbs_kilo(float c);
+double lbs_kilo(double lbs);
 

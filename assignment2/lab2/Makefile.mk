@@ -11,7 +11,7 @@
 CC     = gcc
 CFLAGS = -Wall -Wextra -Werror -g
 
-TARGET = main
+TARGET = run
 
 # Where "make deploy" copies files. Change these if the Pi's address
 # or folder changes.

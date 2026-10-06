@@ -9,17 +9,17 @@
 /*This is the logic that each function uses and will multiply 
  *the variables from main.c and then pass the value back to main.c
  */
-float feet_meter(float a)
+double feet_meter(double feet)
 {
-    return (a * 0.3048);
+    return (feet * 0.3048);
 }
 
-float ounce_litre(float b)
+double ounce_litre(double ounces)
 {
-    return (b * 0.02957353);
+    return (ounces * 0.02957353);
 }
 
-float lbs_kilo(float c)
+double lbs_kilo(double lbs)
 {
-    return (c * 0.4535924);
+    return (lbs * 0.4535924);
 }
