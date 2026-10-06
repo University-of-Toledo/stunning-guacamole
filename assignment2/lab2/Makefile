@@ -11,13 +11,13 @@
 CC     = gcc
 CFLAGS = -Wall -Wextra -Werror -g
 
-TARGET = run
+TARGET = format_demo
 
 # Where "make deploy" copies files. Change these if the Pi's address
 # or folder changes.
 PI_HOST = pi@192.168.1.100
 PI_DIR  = /home/pi/stunning-guacamole/lab02
-SRC    = main.c
+SRC    = format_demo.c
 
 # .PHONY marks targets that are commands, not files to build.
 .PHONY: all run clean deploy
