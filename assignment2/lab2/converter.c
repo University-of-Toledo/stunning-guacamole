@@ -6,6 +6,9 @@
  
 #include "converter.h"
 
+/*This is the logic that each function uses and will multiply 
+ *the variables from main.c and then pass the value back to main.c
+ */
 float feet_meter(float a)
 {
     return (a * 0.3048);
