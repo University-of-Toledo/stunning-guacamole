@@ -1,0 +1,65 @@
+Script started on 2026-10-07 12:04:39-04:00 [COMMAND="./converter" TERM="xterm-256color" TTY="/dev/pts/1" COLUMNS="179" LINES="46"]
+
+-- division --
+7/2 = 3
+7.0/2 = 3.5
+(double)7/2 = 3.5
+
+Unit Converter
+1. Celsius to Fahrenheit
+2. Miles to Kilometers
+3.Pounds to Kilograms
+4.Exit
+Enter your choice
+1
+You selected Celsius to Fahrenheit
+Enter temperature in celsius
+
+35
+35.00 Celsius = 95.00 Fahrenheit
+
+Unit Converter
+1. Celsius to Fahrenheit
+2. Miles to Kilometers
+3.Pounds to Kilograms
+4.Exit
+Enter your choice
+2
+You selected Miles to Kilometers
+Enter the distance in miles
+
+10
+10.00 miles = 16.09 kilometers
+
+Unit Converter
+1. Celsius to Fahrenheit
+2. Miles to Kilometers
+3.Pounds to Kilograms
+4.Exit
+Enter your choice
+3
+You selected Pounds to Kilograms
+
+Enter weight in pounds
+180
+180.00 pounds = 81.63 kilograms
+
+Unit Converter
+1. Celsius to Fahrenheit
+2. Miles to Kilometers
+3.Pounds to Kilograms
+4.Exit
+Enter your choice
+8
+Invalid option
+Unit Converter
+1. Celsius to Fahrenheit
+2. Miles to Kilometers
+3.Pounds to Kilograms
+4.Exit
+Enter your choice
+4
+You selected Exit
+
+
+Script done on 2026-10-07 12:05:17-04:00 [COMMAND_EXIT_CODE="0"]
