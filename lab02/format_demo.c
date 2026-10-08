@@ -27,7 +27,7 @@ int main(void)
 	printf ("template in feet:");
 	scanf("%f", &ft);
 
-	m = ft * 3.28084 ;
+	m = ft * 0.3048 ;
 
 	printf("%.5f feet = %.5f meter\n",ft, m);
 	return 0;
