@@ -17,7 +17,7 @@ TARGET = format_demo
 # or folder changes.
 PI_HOST = pi@192.168.1.100
 PI_DIR  = /home/pi/stunning-guacamole/lab02
-SRC    = format_demo.c
+SRC    = mainconverter.c
 
 # .PHONY marks targets that are commands, not files to build.
 .PHONY: all run clean deploy
