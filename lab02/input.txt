@@ -1,0 +1,5 @@
+Enter Temperature in Farenheit: =50
+Enter pounds: =50
+Enter Miles: =50
+
+./grade.sh lab02
