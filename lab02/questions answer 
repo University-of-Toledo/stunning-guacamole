@@ -1,0 +1,36 @@
+question 1 What format specifier does printf use for a double
+and what specifer does scanf use to read into a pointer to double?
+why do they differ?
+
+printf is %f and scanf is %lf and they differe because printf are
+pushed up before being called upon or retrieved and scanf are pointers
+to ones that aren't called upon 
+
+question 2 compute 7/2 and 7.0/2 in C and explain why the two results
+are different 
+
+7/2=3
+7.0/2 = 3.5
+
+this is different because first one has no decimal value while the
+second one does have at least 1 decimal value
+
+question 3 what does scanf return when it successfully matches all 
+requested conversions? what does it return if the very first
+conversion fails? 
+
+If successfully matching all requested conversions will return however
+many were successfully read and assigned. If very first one fails, it 
+returns to 0 
+
+question 4 if a program calls scanf("%d", &x) and the user types 'abc'
+what happens to x, and what is left in the input stream?
+
+well abc is not an integer so x will become 0 and the left input stream would be
+the abc type in program 
+
+question 5 why should a conversion function be written to take and return double rather than
+int, even if the values involved are often whole numbers 
+
+I would assume it is easier and safer to run the program just in case of issues
+of complex numbers in the function. 
