@@ -1,372 +1,268 @@
 #!/usr/bin/env bash
 #
 # Author:      Merl Creps
-# Description: Grade every student branch of a repo (all branches except main).
-#              For each branch it:
-#                1. checks out the branch into its own folder
-#                2. runs make clean, make, and make run (fed from input.txt)
-#                3. compares the output to expected_output.txt
-#                   PASS            exact match
-#                   PASS_WS         matches when whitespace/blank lines are ignored
-#                   FAIL            neither matches (diff saved for feedback)
-#                4. extracts the text of the student's Word doc (.docx) and grades
-#                   it against answer_key.txt with the Claude API
-#              Results go to results/results.csv plus one folder per branch.
+# Description: Grade a lab using its Makefile.
 #
-# Usage:       ./grade.sh [-b branch] <repo-url-or-path> <lab-folder> <tests-folder>
+# Students:    ./grade.sh lab03
+#                builds and runs lab03/solution with its Makefile
+#                (make clean, make, make run), answers each prompt from
+#                lab03/input.txt, and compares the output to lab03/expected.txt.
+#                The report is saved to graded.txt (headed with the git branch
+#                name, or the current folder if not in a git repo).
 #
-# lab-folder:  the lab to grade in each branch, e.g. lab03. Student work is
-#              in lab03/solution - that folder is built, run, and searched for
-#              the Word doc. If there is no solution folder, lab03 itself is used.
-# Example:     ./grade.sh git@github.com:University-of-Toledo/stunning-guacamole.git lab03 tests/lab03
-#              ./grade.sh -b jsmith git@github.com:University-of-Toledo/stunning-guacamole.git lab03 tests/lab03
+#              ./grade.sh -e lab03/expected_32.txt lab03
+#                same, but compares to the expected file you name
 #
-#   -b branch    grade only this branch and print full feedback (build errors,
-#                output differences) to the screen. Students can use this to
-#                check their work before the deadline.
-#   -g           calculate a points grade (see POINTS below) and add total and
-#                percent columns to the results
-#   -x branch    skip this branch (e.g. your own); repeat -x for more
+# Instructor:  ./grade.sh -g -u <gh-user> -t <gh-token> <repo-url> lab03
+#                pulls every branch (one branch per student) from GitHub,
+#                grades lab03 in each, and writes graded.txt (full report per
+#                student: compile errors, program output, runtime errors,
+#                differences) and results.csv (one line per student)
 #
-# Word docs: any .docx identical to a file on main (your instructions) is
-# ignored, so only the student's own .docx gets graded.
+# Folder layout:
+#   lab03/
+#     input.txt         prompt=answer, one per line
+#     expected.txt      what the program should print
+#     solution/
+#       Makefile
+#       *.c
 #
-# tests-folder must contain:
-#   input.txt            stdin fed to the program
-#   expected_output.txt  exactly what the program should print
-#   answer_key.txt       answers for the Word doc questions (optional)
+# input.txt example (when the program prints the prompt, the answer is sent):
+#   Enter an integer:=5
+#   Enter your name:=Merl
+# Prompts are answered in the order listed. No input.txt = no input.
+# Needs 'expect' (built into macOS; Linux: sudo dnf/apt install expect).
 #
-# Environment:
-#   ANTHROPIC_API_KEY    required for Word doc grading (skipped if not set)
-#   CLAUDE_MODEL         model to use (default below)
-#   RUN_TIMEOUT          seconds before a program is killed (default 10)
-#
-# POINTS (used with -g; override with environment variables):
-#   BUILD_PTS    builds with make                      (default 2)
-#   RUN_PTS      runs without timing out               (default 2)
-#   OUTPUT_PTS   output PASS                           (default 4)
-#                output PASS_WS gets half of OUTPUT_PTS
-#   Word doc     points come from the answer key (Claude returns score/max)
-#
-# WARNING: make runs whatever is in a student's Makefile. Run this on a
-#          throwaway machine or container (e.g. the Raspberry Pi), not your laptop.
+# Results:  PASS     output matches (spaces, tabs and blank lines are ignored)
+#           FAIL     does not match (differences are shown)
 
-set -u
+RUN_TIMEOUT=10
 
-# ---------------------------------------------------------------- settings
-CLAUDE_MODEL="${CLAUDE_MODEL:-claude-sonnet-4-5}"
-RUN_TIMEOUT="${RUN_TIMEOUT:-10}"
-MAIN_BRANCH="main"
-BUILD_PTS="${BUILD_PTS:-2}"
-RUN_PTS="${RUN_PTS:-2}"
-OUTPUT_PTS="${OUTPUT_PTS:-4}"
+command -v expect >/dev/null 2>&1 || { echo "Error: 'expect' is not installed (Linux: sudo dnf install expect)." >&2; exit 1; }
 
-# ---------------------------------------------------------------- arguments
 usage() {
-    echo "Usage: $0 [-b branch] [-g] [-x branch] <repo-url-or-path> <lab-folder> <tests-folder>" >&2
+    echo "Usage: $0 [-e expected-file] <lab-folder>   grade your lab" >&2
+    echo "       $0 -g -u <gh-user> -t <gh-token> <repo-url> <lab-folder>   grade every student branch" >&2
     exit 1
 }
 
-ONLY_BRANCH=""
-CALC_GRADE=0
-EXCLUDE=""
-while getopts ":b:gx:" opt; do
+# Trim lines, squeeze spaces/tabs to one space, drop blank lines.
+normalize() {
+    tr '\t' ' ' | sed 's/  */ /g; s/^ //; s/ $//' | grep -v '^$'
+}
+
+# Grade one lab folder. Prints the result and sets RESULT.
+grade_lab() {
+    local labdir="$1"
+    local sol="$labdir/solution"
+    local expected="${EXPECTED_FILE:-$labdir/expected.txt}"
+    local input; input="$(cd "$labdir" && pwd)/input.txt"
+    local actual rc
+
+    RESULT="FAIL"
+
+    if [ ! -f "$sol/Makefile" ] && [ ! -f "$sol/makefile" ]; then
+        echo "  no Makefile in $sol"
+        RESULT="NO_MAKEFILE"
+        return
+    fi
+    if [ ! -f "$expected" ]; then
+        echo "  expected file not found: $expected"
+        RESULT="NO_EXPECTED"
+        return
+    fi
+
+    local buildlog; buildlog="$(mktemp)"
+    if ! ( cd "$sol" && make clean >/dev/null 2>&1; make ) >"$buildlog" 2>&1; then
+        echo "  build: FAILED"
+        echo "  ----- compile errors -----"
+        cat "$buildlog"
+        echo "  --------------------------"
+        rm -f "$buildlog"
+        RESULT="BUILD_FAILED"
+        return
+    fi
+    rm -f "$buildlog"
+    echo "  build: ok"
+
+    # Run with make run. Each prompt in input.txt is answered when it appears.
+    local tmp; tmp="$(mktemp)"
+    ( cd "$sol" && expect -c '
+        set timeout '"$RUN_TIMEOUT"'
+        log_user 1
+        spawn -noecho make -s run
+        if {[file exists "'"$input"'"]} {
+            set f [open "'"$input"'" r]
+            while {[gets $f line] >= 0} {
+                if {[string trim $line] eq "" || [string index [string trim $line] 0] eq "#"} continue
+                set i [string first "=" $line]
+                if {$i < 0} continue
+                set prompt [string trim [string range $line 0 [expr {$i - 1}]]]
+                set answer [string trim [string range $line [expr {$i + 1}] end]]
+                expect {
+                    -exact $prompt { send -- "$answer\r" }
+                    timeout { puts "\n\[grade.sh: prompt not found: $prompt\]"; exit 124 }
+                    eof { puts "\n\[grade.sh: program ended before prompt: $prompt\]"; exit [lindex [wait] 3] }
+                }
+            }
+            close $f
+        }
+        expect {
+            timeout { exit 124 }
+            eof
+        }
+        exit [lindex [wait] 3]
+    ' ) > "$tmp"
+    rc=$?
+    actual="$(tr -d '\r' < "$tmp")"
+    rm -f "$tmp"
+    if [ "$rc" -eq 124 ]; then
+        echo "  run:   timed out after ${RUN_TIMEOUT}s"
+        echo "  ----- output before it stopped -----"
+        printf '%s\n' "$actual"
+        RESULT="TIMEOUT"
+        return
+    fi
+
+    # Show what the program printed (runtime errors and crashes appear here too)
+    echo "  ----- program output -----"
+    printf '%s\n' "$actual"
+    echo "  --------------------------"
+    if [ "$rc" -ne 0 ]; then
+        echo "  run:   RUNTIME ERROR (make run exited with code $rc)"
+    else
+        echo "  run:   ok"
+    fi
+
+    # Remove the prompts and the answers typed into them, so expected.txt
+    # only needs the program's real output
+    if [ -f "$input" ]; then
+        local line prompt answer
+        while IFS= read -r line || [ -n "$line" ]; do
+            [[ "$line" == *=* ]] || continue
+            [[ "$line" =~ ^[[:space:]]*# ]] && continue
+            prompt="${line%%=*}"; answer="${line#*=}"
+            prompt="$(printf '%s' "$prompt" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+            answer="$(printf '%s' "$answer" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+            actual="$(printf '%s' "$actual" | P="$prompt" A="$answer" perl -0pe 's/\Q$ENV{P}\E[ \t]*\Q$ENV{A}\E//')"
+        done < "$input"
+    fi
+
+    # Spaces, tabs and blank lines are ignored: trim each line, squeeze
+    # runs of spaces to one, and drop blank lines before comparing
+    local exp_norm act_norm
+    exp_norm="$(normalize < "$expected")"
+    act_norm="$(printf '%s\n' "$actual" | normalize)"
+
+    if [ "$exp_norm" = "$act_norm" ]; then
+        RESULT="PASS"
+    fi
+    echo "  output: $RESULT"
+    [ "$rc" -ne 0 ] && RESULT="RUNTIME_ERROR"
+
+    if [ "$RESULT" != "PASS" ]; then
+        echo "  ----- differences (< expected   > yours) -----"
+        diff <(printf '%s\n' "$exp_norm") <(printf '%s\n' "$act_norm")
+    fi
+}
+
+# ---------------------------------------------------------------- student mode
+if [ "${1:-}" != "-g" ]; then
+    EXPECTED_FILE=""
+    if [ "${1:-}" = "-e" ]; then
+        [ $# -eq 3 ] || usage
+        EXPECTED_FILE="$2"
+        shift 2
+    fi
+    [ $# -eq 1 ] || usage
+    [ -d "$1" ] || { echo "Error: folder '$1' not found." >&2; exit 1; }
+
+    # Header: the git branch name if this is a git repo, otherwise the folder
+    name="$(cd "$1" && git symbolic-ref --short HEAD 2>/dev/null)"
+    [ -z "$name" ] && name="$(pwd)"
+    GRADED="$(pwd)/graded.txt"
+    SEP="================================================================"
+
+    report="$(mktemp)"
+    {
+        echo "$SEP"
+        echo "  Student: $name"
+        echo "  Lab:     $1"
+        echo "$SEP"
+        grade_lab "$1"
+        echo "  RESULT: $RESULT"
+        echo
+    } > "$report" 2>&1
+    cat "$report"
+    cp "$report" "$GRADED"
+    rm -f "$report"
+    echo "Saved: $GRADED"
+    exit 0
+fi
+
+# ---------------------------------------------------------------- instructor mode (-g)
+shift
+GH_USER=""
+GH_TOKEN=""
+while getopts ":u:t:" opt; do
     case "$opt" in
-        b) ONLY_BRANCH="$OPTARG" ;;
-        g) CALC_GRADE=1 ;;
-        x) EXCLUDE="$EXCLUDE$OPTARG"$'\n' ;;
+        u) GH_USER="$OPTARG" ;;
+        t) GH_TOKEN="$OPTARG" ;;
         *) usage ;;
     esac
 done
 shift $((OPTIND - 1))
 
-[ $# -eq 3 ] || usage
-
+[ -n "$GH_USER" ] && [ -n "$GH_TOKEN" ] && [ $# -eq 2 ] || usage
+if [ "$GH_USER" != "mcrepssdi" ]; then
+    echo "Error: -g is only available to the instructor." >&2
+    exit 1
+fi
 REPO="$1"
-LAB_DIR="$2"
-TESTS_DIR="$(cd "$3" 2>/dev/null && pwd)" || { echo "Error: tests folder '$3' not found." >&2; exit 1; }
+LAB="$2"
+WORK="$(pwd)/grading"
+CSV="$(pwd)/results.csv"
+GRADED="$(pwd)/graded.txt"
 
-INPUT="$TESTS_DIR/input.txt"
-EXPECTED="$TESTS_DIR/expected_output.txt"
-ANSWER_KEY="$TESTS_DIR/answer_key.txt"
+# Build an https URL with the user and token
+# (accepts https://github.com/org/repo.git or git@github.com:org/repo.git)
+path="$(printf '%s' "$REPO" | sed -E 's#^https://github\.com/##; s#^git@github\.com:##')"
+AUTH_URL="https://$GH_USER:$GH_TOKEN@github.com/$path"
 
-for f in "$INPUT" "$EXPECTED"; do
-    if [ ! -f "$f" ]; then
-        echo "Error: missing $f" >&2
-        exit 1
-    fi
-done
-
-# ---------------------------------------------------------------- tools
-# macOS has gtimeout (brew install coreutils) instead of timeout
-if command -v timeout >/dev/null 2>&1; then
-    TIMEOUT="timeout"
-elif command -v gtimeout >/dev/null 2>&1; then
-    TIMEOUT="gtimeout"
-else
-    echo "Error: need 'timeout' (Linux) or 'gtimeout' (macOS: brew install coreutils)." >&2
-    exit 1
-fi
-
-for tool in git make diff unzip perl; do
-    command -v "$tool" >/dev/null 2>&1 || { echo "Error: '$tool' is not installed." >&2; exit 1; }
-done
-
-GRADE_DOCS=1
-if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
-    echo "Note: ANTHROPIC_API_KEY not set - Word doc grading skipped."
-    GRADE_DOCS=0
-elif [ ! -f "$ANSWER_KEY" ]; then
-    echo "Note: no answer_key.txt in $TESTS_DIR - Word doc grading skipped."
-    GRADE_DOCS=0
-elif ! command -v curl >/dev/null 2>&1 || ! command -v jq >/dev/null 2>&1; then
-    echo "Note: curl and jq are needed for Word doc grading - skipped."
-    GRADE_DOCS=0
-fi
-
-# ---------------------------------------------------------------- folders
-WORK="$(pwd)/work"
-RESULTS="$(pwd)/results"
-rm -rf "$WORK" "$RESULTS"
-mkdir -p "$WORK" "$RESULTS"
-
-CSV="$RESULTS/results.csv"
-if [ "$CALC_GRADE" -eq 1 ]; then
-    echo "branch,build,run,output,doc_score,doc_max,total,possible,percent,doc_feedback" > "$CSV"
-else
-    echo "branch,build,run,output,doc_score,doc_max,doc_feedback" > "$CSV"
-fi
-
-# ---------------------------------------------------------------- helpers
-
-# Quote a value for CSV: wrap in quotes, double any quotes inside.
-csv_quote() {
-    printf '"%s"' "$(printf '%s' "$1" | tr '\n' ' ' | sed 's/"/""/g')"
-}
-
-# Print the plain text of a .docx (paragraphs become lines).
-docx_text() {
-    unzip -p "$1" word/document.xml 2>/dev/null |
-        perl -pe 's/<\/w:p>/\n/g; s/<w:tab\/>/\t/g; s/<[^>]+>//g;
-                  s/&lt;/</g; s/&gt;/>/g; s/&quot;/"/g; s/&apos;/'"'"'/g; s/&amp;/&/g'
-}
-
-# Grade answers against the key with Claude.
-# Prints: score<TAB>max<TAB>feedback   (or an error message in feedback)
-grade_doc() {
-    local answers="$1"
-    local key prompt payload response text
-
-    key="$(cat "$ANSWER_KEY")"
-    prompt="You are grading a student's written answers for a C programming lab.
-
-ANSWER KEY:
-$key
-
-STUDENT ANSWERS:
-$answers
-
-Grade each answer against the key. Give partial credit where the idea is right but incomplete.
-Reply with ONLY a JSON object, no other text:
-{\"score\": <points earned>, \"max\": <points possible>, \"feedback\": \"<one or two sentences for the student>\"}"
-
-    payload="$(jq -n --arg model "$CLAUDE_MODEL" --arg prompt "$prompt" \
-        '{model: $model, max_tokens: 1024, messages: [{role: "user", content: $prompt}]}')"
-
-    response="$(curl -s https://api.anthropic.com/v1/messages \
-        -H "x-api-key: $ANTHROPIC_API_KEY" \
-        -H "anthropic-version: 2023-06-01" \
-        -H "content-type: application/json" \
-        -d "$payload")"
-
-    text="$(printf '%s' "$response" | jq -r '.content[0].text // empty' 2>/dev/null)"
-    if [ -z "$text" ]; then
-        printf '\t\tAPI error: %s' "$(printf '%s' "$response" | jq -r '.error.message // "no response"' 2>/dev/null)"
-        return
-    fi
-
-    # Pull the JSON object out even if the model wrapped it in other text.
-    printf '%s' "$text" | perl -0ne 'print $1 if /(\{.*\})/s' |
-        jq -r '[(.score|tostring), (.max|tostring), .feedback] | @tsv' 2>/dev/null ||
-        printf '\t\tCould not parse grade: %s' "$text"
-}
-
-# ---------------------------------------------------------------- clone
-echo "Cloning $REPO ..."
-if ! git clone --quiet "$REPO" "$WORK/repo"; then
-    echo "Error: could not clone $REPO" >&2
-    exit 1
-fi
+rm -rf "$WORK"
+mkdir -p "$WORK"
+git clone --quiet "$AUTH_URL" "$WORK/repo" || { echo "Error: could not clone $REPO" >&2; exit 1; }
 cd "$WORK/repo" || exit 1
-git fetch --all --quiet
+git remote set-url origin "https://github.com/$path"   # don't leave the token on disk
 
-BRANCHES="$(git branch -r --format='%(refname:short)' |
-    grep -v -- '->' | grep -v "^origin$" | sed 's#^origin/##' | grep -vx "$MAIN_BRANCH" | sort)"
+echo "student,result" > "$CSV"
+: > "$GRADED"
+SEP="================================================================"
 
-if [ -n "$EXCLUDE" ]; then
-    BRANCHES="$(printf '%s\n' "$BRANCHES" | grep -vxF -f <(printf '%s' "$EXCLUDE"))"
-fi
-
-# Fingerprints of every file on main, so instructor .docx files copied into
-# student branches are not mistaken for the student's answers.
-MAIN_BLOBS="$(git ls-tree -r "origin/$MAIN_BRANCH" 2>/dev/null | awk '{print $3}')"
-
-if [ -n "$ONLY_BRANCH" ]; then
-    if ! printf '%s\n' "$BRANCHES" | grep -qx -- "$ONLY_BRANCH"; then
-        echo "Error: branch '$ONLY_BRANCH' not found." >&2
-        exit 1
-    fi
-    BRANCHES="$ONLY_BRANCH"
-fi
-
-if [ -z "$BRANCHES" ]; then
-    echo "No branches other than $MAIN_BRANCH found."
-    exit 0
-fi
-
-# ---------------------------------------------------------------- grade each branch
-for branch in $BRANCHES; do
-    safe="$(printf '%s' "$branch" | tr '/' '_')"
-    dir="$WORK/branches/$safe"
-    out="$RESULTS/$safe"
-    mkdir -p "$out"
-
-    echo
-    echo "=== $branch ==="
-
-    git worktree add --quiet --detach "$dir" "origin/$branch" 2>"$out/checkout.log"
-    # Student work is in <lab-folder>/solution; if that's missing, use <lab-folder>
-    if [ -d "$dir/$LAB_DIR/solution" ]; then
-        lab="$dir/$LAB_DIR/solution"
-        where="$LAB_DIR/solution"
-    else
-        lab="$dir/$LAB_DIR"
-        where="$LAB_DIR"
-    fi
-    [ -d "$lab" ] && echo "  folder: $where"
-
-    build="no"; run="no"; output="FAIL"
-    score=""; max=""; feedback=""
-
-    if [ ! -d "$lab" ]; then
-        echo "  no $LAB_DIR folder"
-        feedback="No $LAB_DIR folder found."
-    elif [ ! -f "$lab/Makefile" ] && [ ! -f "$lab/makefile" ]; then
-        echo "  no Makefile in $where"
-        feedback="No Makefile found in $where."
-    else
-        # make clean, then make
-        ( cd "$lab" && make clean >/dev/null 2>&1; make ) >"$out/build.log" 2>&1
-        if [ $? -eq 0 ]; then
-            build="yes"
-            echo "  build: ok"
-
-            # make run, fed from input.txt (-s keeps make's own command echo out of the output).
-            # If the Makefile has no run target, run the program named by TARGET instead.
-            if ( cd "$lab" && make -n run >/dev/null 2>&1 ); then
-                run_cmd=(make -s run)
-            else
-                target="$(cd "$lab" && make -s --no-print-directory \
-                    --eval='__grade_target: ; @echo $(TARGET)' __grade_target 2>/dev/null)"
-                run_cmd=("./$target")
-                echo "  note:  no 'run' target, running ./$target"
-            fi
-            ( cd "$lab" && "$TIMEOUT" "$RUN_TIMEOUT" "${run_cmd[@]}" ) \
-                <"$INPUT" >"$out/actual_output.txt" 2>"$out/run_errors.txt"
-            rc=$?
-            if [ $rc -eq 124 ]; then
-                run="timeout"
-                echo "  run:   timed out after ${RUN_TIMEOUT}s"
-            else
-                run="yes"
-                echo "  run:   exit code $rc"
-            fi
-
-            # strict, then loose
-            if diff "$EXPECTED" "$out/actual_output.txt" >"$out/diff.txt"; then
-                output="PASS"
-                rm -f "$out/diff.txt"
-            elif diff -w -B "$EXPECTED" "$out/actual_output.txt" >/dev/null; then
-                output="PASS_WS"
-            fi
-            echo "  output: $output"
+for branch in $(git branch -r --format='%(refname:short)' | grep -v -- '->' | sed 's#^origin/##' | grep -vx main | grep -vx origin); do
+    git checkout --quiet --force "origin/$branch" 2>/dev/null
+    git clean -qfdx
+    report="$(mktemp)"
+    {
+        echo "$SEP"
+        echo "  Student: $branch"
+        echo "$SEP"
+        if [ -d "$LAB" ]; then
+            grade_lab "$LAB"
         else
-            echo "  build: FAILED (see build.log)"
+            echo "  no $LAB folder"
+            RESULT="NO_LAB"
         fi
-    fi
-
-    # Word doc
-    doc=""
-    while IFS= read -r f; do
-        if ! printf '%s\n' "$MAIN_BLOBS" | grep -qx "$(git hash-object "$f")"; then
-            doc="$f"
-            break
-        fi
-    done < <(find "$lab" -maxdepth 2 -name '*.docx' ! -name '~$*' 2>/dev/null | sort)
-    if [ -z "$doc" ]; then
-        echo "  doc:   no student .docx found"
-        [ -z "$feedback" ] && feedback="No student Word doc found."
-    else
-        docx_text "$doc" >"$out/answers.txt"
-        if [ "$GRADE_DOCS" -eq 1 ]; then
-            IFS=$'\t' read -r score max feedback < <(grade_doc "$(cat "$out/answers.txt")")
-            echo "  doc:   $score / $max"
-        else
-            echo "  doc:   found (not graded)"
-        fi
-    fi
-
-    # Points grade (-g)
-    if [ "$CALC_GRADE" -eq 1 ]; then
-        total=0
-        possible=$((BUILD_PTS + RUN_PTS + OUTPUT_PTS))
-        [ "$build" = "yes" ] && total=$((total + BUILD_PTS))
-        [ "$run" = "yes" ] && total=$((total + RUN_PTS))
-        case "$output" in
-            PASS)    total=$((total + OUTPUT_PTS)) ;;
-            PASS_WS) total=$((total + OUTPUT_PTS / 2)) ;;
-        esac
-        # Doc points may be decimals (partial credit), so use awk for the math
-        total="$(awk -v t="$total" -v s="${score:-0}" 'BEGIN { printf "%g", t + s }')"
-        possible="$(awk -v p="$possible" -v m="${max:-0}" 'BEGIN { printf "%g", p + m }')"
-        percent="$(awk -v t="$total" -v p="$possible" 'BEGIN { printf "%.1f", (p > 0 ? 100 * t / p : 0) }')"
-        echo "  grade: $total / $possible ($percent%)"
-
-        printf '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
-            "$(csv_quote "$branch")" "$build" "$run" "$output" "$score" "$max" \
-            "$total" "$possible" "$percent" "$(csv_quote "$feedback")" >>"$CSV"
-    else
-        printf '%s,%s,%s,%s,%s,%s,%s\n' \
-            "$(csv_quote "$branch")" "$build" "$run" "$output" "$score" "$max" "$(csv_quote "$feedback")" >>"$CSV"
-    fi
-
-    # Single-branch mode (-b): show full feedback on screen
-    if [ -n "$ONLY_BRANCH" ]; then
+        echo "  RESULT: $RESULT"
         echo
-        if [ "$build" = "no" ] && [ -f "$out/build.log" ]; then
-            echo "----- build errors -----"
-            cat "$out/build.log"
-        fi
-        if [ "$run" = "timeout" ]; then
-            echo "----- program timed out: check for an infinite loop or a missing input check -----"
-        fi
-        if [ -s "$out/run_errors.txt" ]; then
-            echo "----- errors printed while running -----"
-            cat "$out/run_errors.txt"
-        fi
-        if [ "$output" != "PASS" ] && [ -f "$out/diff.txt" ]; then
-            echo "----- output differences (< expected   > yours) -----"
-            cat "$out/diff.txt"
-        fi
-        if [ -n "$feedback" ]; then
-            echo "----- Word doc feedback -----"
-            echo "$feedback"
-        fi
-    fi
+    } > "$report" 2>&1
+    RESULT="$(sed -n 's/^  RESULT: //p' "$report" | tail -1)"
+    cat "$report"
+    cat "$report" >> "$GRADED"
+    rm -f "$report"
+    echo "$branch,$RESULT" >> "$CSV"
 done
-
-# ---------------------------------------------------------------- clean up
-cd "$WORK/repo" && git worktree prune
 
 echo
-echo "Done. Results: $CSV"
+echo "Done. Review: $GRADED"
+echo "      Summary: $CSV"
