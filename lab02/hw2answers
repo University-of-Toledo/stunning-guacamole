@@ -1,0 +1,8 @@
+1.printf uses the -%lf- specifer for a double while scanf uses a -"%lf", &variablename-.
+The -""- identifies anything inside as a format string while any character after -,- is the argument.
+2. when written as -int- 7 / 2 returns 3 as a whole number because it's specifier integer -%d- identifies
+only whole numbers. when 7.0 is written its specifer is float -%f- with option to set the significant figures.
+3.scanf returns the exact number of input items it matched and assigned succesfully. a wrong input leads to an invalid and buggy output.
+4.In my program, the -&variablename- is unidentified and reverts to a zero -0- value. the rest of the math operation completes with the desired &x value.
+5.Often our calculations in real word construction or formulas need to be as precise as possible.
+Therefore we need our results to show decimal or fractional values via the -double- specifier.
