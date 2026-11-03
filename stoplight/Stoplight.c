@@ -28,7 +28,7 @@ int main(void)
 
 	
 	printf("Choose amount of times to run the loop: ");
-	if(scanf("%d", &loops) <= 0)
+	while(scanf("%d", &loops) != 1 || loops <= 0)
         {
             printf("Enter a valid input (1, 2, 3...)\n\n");
             
@@ -36,6 +36,8 @@ int main(void)
              *then it ends the loop and continue moves the code back to the start
              */
             while(getchar() != '\n');
+            
+            printf("Choose amount of times to run the loop: ");
         }   
 	
 	
@@ -66,5 +68,8 @@ int main(void)
 	
 	} 
 	
+	digitalWrite(RED, LOW); /*Ensures the leds are off*/
+	digitalWrite(YELLOW, LOW);
+	digitalWrite(GREEN, LOW);
 	return 0;
 }
