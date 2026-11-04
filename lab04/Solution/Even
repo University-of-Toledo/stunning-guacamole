@@ -1,0 +1,14 @@
+How many grades (1-100)? 4
+Grade 1 (0-100): 55
+Grade 2 (0-100): 65
+Grade 3 (0-100): 75
+Grade 4 (0-100): 85
+
+sizeof(grades) in main: 800
+sizeof(grades) in function: 8
+
+Count : 4
+Min : 55.00
+Max : 85.00
+Mean : 70.00
+Median: 70.00
