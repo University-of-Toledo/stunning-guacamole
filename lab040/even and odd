@@ -1,0 +1,49 @@
+enter the number of grades (1-100): 5   odd
+enter grade 1 (0-100): 75
+enter grade 2 (0-100): 87
+enter grade 3 (0-100): 89
+enter grade 4 (0-100): 85
+enter grade 5 (0-100): 87
+
+Array size demonstration:
+sizeof(grades) in main: 800 bytes
+sizeof(grades) in function: 8 bytes
+8 bytes
+
+Sorted grades:
+75.00 85.00 87.00 87.00 89.00 
+
+Grade Statistics Report
+-----------------------
+Number of grades: 5
+Minimum:          75.00
+Maximum:          89.00
+Mean:             84.60
+Median:           87.00
+
+grade Statistics Program
+------------------------
+enter the number of grades (1-100): 4 even
+enter grade 1 (0-100): 45
+enter grade 2 (0-100): 86
+enter grade 3 (0-100): 99
+enter grade 4 (0-100): 89
+
+Array size demonstration:
+sizeof(grades) in main: 800 bytes
+sizeof(grades) in function: 8 bytes
+8 bytes
+
+Sorted grades:
+45.00 86.00 89.00 99.00 
+
+Grade Statistics Report
+-----------------------
+Number of grades: 4
+Minimum:          45.00
+Maximum:          99.00
+Mean:             79.75
+Median:           87.50
+
+
+
