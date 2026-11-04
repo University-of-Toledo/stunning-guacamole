@@ -1,9 +1,3 @@
-//Author Mike Fitch
-// Lab04
-// using arrays to form and make up a grading statistics report
-
-
-
 #include <stdio.h>
 
 #define MAX_GRADES 100
@@ -60,6 +54,13 @@ int main(void)
 
 
 	sort_grades(grades, count);
+
+	// size of pointer not the full array
+        // array becomes a pointer once passed in a function
+
+        printf("Array size inside function: %zu bytes\n",
+               sizeof(grades));
+
 
 
 	printf("\nGrade Report\n");

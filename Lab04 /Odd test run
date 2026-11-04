@@ -1,0 +1,18 @@
+How many grades do you want to enter? 5
+
+Enter 5 grades (0-100):
+Enter grade 1: 87
+Enter grade 2: 99
+Enter grade 3: 67
+Enter grade 4: 55
+Enter grade 5: 23
+
+Array size in main: 800 bytes
+
+Grade Report
+Number of grades: 5
+Minimum grade:    23.00
+Maximum grade:    99.00
+Array size inside function: 8 bytes
+Mean grade:       66.20
+Median grade:     67.00
