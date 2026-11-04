@@ -1,3 +1,9 @@
+//Author Mike Fitch
+// Lab04
+// using arrays to form and make up a grading statistics report
+
+
+
 #include <stdio.h>
 
 #define MAX_GRADES 100
