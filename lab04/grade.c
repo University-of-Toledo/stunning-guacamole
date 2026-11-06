@@ -172,8 +172,7 @@ void print_pointer_size(const double *grades)
      * When an array is passed to a function, only is able to show the size of the pointer.
      which is why this will only print 8 bytes, for the size of the individual array.
      */
-    printf("Size of grades parameter inside a function: %zu\n",
-           sizeof(grades);
+    printf("Size of grades parameter inside a function: %zu\n", sizeof(grades));
 }
 
 

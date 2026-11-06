@@ -29,7 +29,7 @@ all: $(TARGET)
 # $@ means "the target" and $^ means "all the prerequisites".
 # NOTE: the command line below MUST start with a TAB, not spaces.
 $(TARGET): $(SRC)
-	$(CC) $(CFLAGS) -o $@ 
+	$(CC) $(CFLAGS) -o $@ $^
 
 run: $(TARGET)
 	./$(TARGET)
