@@ -1,0 +1,244 @@
+sudo apt update && sudo apt install -y libgpiod-dev gpiod
+ 
+sudo apt update && sudo apt install -y build-essential
+
+/*
+* stoplight_pi5.c  --  Bitwise operators with a 5-LED traffic light
+* EET Lab, University of Toledo
+*
+* Raspberry Pi 5 version. The Pi 5 drives its GPIO through the RP1 chip,
+* so the pins are controlled with the libgpiod library instead of
+* writing to the Pi 4 GPIO registers. The bitwise logic is unchanged.
+*
+* The whole traffic light is ONE variable. Each bit is one LED:
+*
+*     bit:    4         3        2      1       0
+*     LED:  G_ARROW  Y_ARROW   GREEN  YELLOW   RED
+*
+* Wiring (Raspberry Pi 5):
+*     RED      GPIO 17  (pin 11)
+*     YELLOW   GPIO 27  (pin 13)
+*     GREEN    GPIO 22  (pin 15)
+*     Y_ARROW  GPIO 5   (pin 29)
+*     G_ARROW  GPIO 6   (pin 31)
+*     Each LED: GPIO pin -> 330 ohm resistor -> LED -> GND
+*
+* Setup (once):
+*     sudo apt install libgpiod-dev gpiod
+*     gpiodetect                          (the chip labelled pinctrl-rp1)
+*     pkg-config --modversion libgpiod    (1.x or 2.x)
+*
+* Build and run:
+*     libgpiod 1.x:  gcc -Wall -o stoplight stoplight_pi5.c -lgpiod
+*     libgpiod 2.x:  gcc -Wall -DGPIOD_V2 -o stoplight stoplight_pi5.c -lgpiod
+*     ./stoplight
+*
+* If no GPIO chip is found, the program still runs and prints the
+* LED bits on screen.
+*/
+
+#include <stdio.h>
+#include <unistd.h>
+#include <gpiod.h>
+
+#define NUM_LEDS  5
+
+/* The RP1 GPIO chip. On older Pi 5 kernels it is /dev/gpiochip4:
+* run gpiodetect and use the chip labelled pinctrl-rp1. */
+#define GPIO_CHIP "/dev/gpiochip0"
+
+/* One bit per LED */
+#define RED       (1u << 0)    /* 00001 */
+#define YELLOW    (1u << 1)    /* 00010 */
+#define GREEN     (1u << 2)    /* 00100 */
+#define Y_ARROW   (1u << 3)    /* 01000 */
+#define G_ARROW   (1u << 4)    /* 10000 */
+#define ARROWS    (Y_ARROW | G_ARROW)
+
+/* led_pins[n] is the GPIO pin for bit n */
+const unsigned int led_pins[NUM_LEDS] = { 17, 27, 22, 23, 24 };
+
+/* Handle to the claimed pins. Stays NULL if there is no GPIO. */
+#ifdef GPIOD_V2
+struct gpiod_line_request *request = NULL;
+#else
+struct gpiod_chip *chip = NULL;
+struct gpiod_line *lines[NUM_LEDS];
+#endif
+
+int  gpio_setup(void);
+void gpio_write(int pin_index, unsigned int bit);
+void gpio_cleanup(void);
+void show(const char *step, unsigned int signal, int seconds);
+
+
+int main(void)
+{
+    unsigned int signal;
+    int cycle;
+    int i;
+
+    gpio_setup();
+
+    signal = RED;
+    for (cycle = 0; cycle < 2; cycle++) {
+        show("Red", signal, 2);
+
+        signal = signal | G_ARROW;                  /* OR turns a bit on   */
+        show("signal | G_ARROW", signal, 3);
+
+        signal = (signal & ~ARROWS) | Y_ARROW;      /* clear arrows, add Y */
+        show("(signal & ~ARROWS) | Y_ARROW", signal, 2);
+
+        signal = signal & ~Y_ARROW;                 /* AND NOT turns it off */
+        show("signal & ~Y_ARROW", signal, 1);
+
+        signal = signal ^ (RED | GREEN);            /* XOR flips both bits */
+        show("signal ^ (RED | GREEN)", signal, 3);
+
+        signal = signal ^ (GREEN | YELLOW);         /* green -> yellow     */
+        show("signal ^ (GREEN | YELLOW)", signal, 2);
+
+        signal = signal ^ (YELLOW | RED);           /* yellow -> red       */
+        show("signal ^ (YELLOW | RED)", signal, 1);
+    }
+
+    /* Flashing red: XOR the same bit over and over */
+    for (i = 0; i < 6; i++) {
+        signal = signal ^ RED;
+        show("Flashing: signal ^ RED", signal, 1);
+    }
+
+    show("All off", 0, 0);
+    gpio_cleanup();
+    return 0;
+}
+
+
+#ifdef GPIOD_V2
+/* ---------- libgpiod 2.x ---------- */
+
+/* Claim the 5 LED pins as outputs, all starting off */
+int gpio_setup(void)
+{
+    struct gpiod_chip *gchip;
+    struct gpiod_line_settings *settings;
+    struct gpiod_line_config *line_cfg;
+    struct gpiod_request_config *req_cfg;
+
+    gchip = gpiod_chip_open(GPIO_CHIP);
+    if (gchip == NULL) {
+        printf("No GPIO chip at %s - showing LEDs on screen only.\n\n", GPIO_CHIP);
+        return -1;
+    }
+
+    settings = gpiod_line_settings_new();
+    gpiod_line_settings_set_direction(settings, GPIOD_LINE_DIRECTION_OUTPUT);
+    gpiod_line_settings_set_output_value(settings, GPIOD_LINE_VALUE_INACTIVE);
+
+    line_cfg = gpiod_line_config_new();
+    gpiod_line_config_add_line_settings(line_cfg, led_pins, NUM_LEDS, settings);
+
+    req_cfg = gpiod_request_config_new();
+    gpiod_request_config_set_consumer(req_cfg, "stoplight");
+
+    request = gpiod_chip_request_lines(gchip, req_cfg, line_cfg);
+
+    gpiod_request_config_free(req_cfg);
+    gpiod_line_config_free(line_cfg);
+    gpiod_line_settings_free(settings);
+    gpiod_chip_close(gchip);
+
+    if (request == NULL) {
+        printf("Could not claim the LED pins - showing LEDs on screen only.\n\n");
+        return -1;
+    }
+    return 0;
+}
+
+/* Turn one LED on (bit = 1) or off (bit = 0) */
+void gpio_write(int pin_index, unsigned int bit)
+{
+    if (request != NULL) {
+        gpiod_line_request_set_value(request, led_pins[pin_index],
+            bit ? GPIOD_LINE_VALUE_ACTIVE : GPIOD_LINE_VALUE_INACTIVE);
+    }
+}
+
+/* Release the pins */
+void gpio_cleanup(void)
+{
+    if (request != NULL) {
+        gpiod_line_request_release(request);
+        request = NULL;
+    }
+}
+
+#else
+/* ---------- libgpiod 1.x ---------- */
+
+/* Claim the 5 LED pins as outputs, all starting off */
+int gpio_setup(void)
+{
+    int i;
+
+    chip = gpiod_chip_open(GPIO_CHIP);
+    if (chip == NULL) {
+        printf("No GPIO chip at %s - showing LEDs on screen only.\n\n", GPIO_CHIP);
+        return -1;
+    }
+
+    for (i = 0; i < NUM_LEDS; i++) {
+        lines[i] = gpiod_chip_get_line(chip, led_pins[i]);
+        if (lines[i] == NULL ||
+            gpiod_line_request_output(lines[i], "stoplight", 0) < 0) {
+            printf("Could not claim GPIO %u - showing LEDs on screen only.\n\n",
+                   led_pins[i]);
+            gpiod_chip_close(chip);
+            chip = NULL;
+            return -1;
+        }
+    }
+    return 0;
+}
+
+/* Turn one LED on (bit = 1) or off (bit = 0) */
+void gpio_write(int pin_index, unsigned int bit)
+{
+    if (chip != NULL) {
+        gpiod_line_set_value(lines[pin_index], (int)bit);
+    }
+}
+
+/* Release the pins (closing the chip releases every claimed line) */
+void gpio_cleanup(void)
+{
+    if (chip != NULL) {
+        gpiod_chip_close(chip);
+        chip = NULL;
+    }
+}
+#endif
+
+
+/* Print the step and the bits, light the LEDs, then wait */
+void show(const char *step, unsigned int signal, int seconds)
+{
+    int i;
+    unsigned int bit;
+
+    printf("%-30s ", step);
+    for (i = NUM_LEDS - 1; i >= 0; i--) {
+        bit = (signal >> i) & 1u;                /* read bit i */
+        printf("%u", bit);
+    }
+    printf("\n");
+
+    for (i = 0; i < NUM_LEDS; i++) {
+        bit = (signal >> i) & 1u;                /* read bit i */
+        gpio_write(i, bit);                      /* 1 = on, 0 = off */
+    }
+
+    sleep(seconds);
+}
+ 
