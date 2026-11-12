@@ -1,0 +1,82 @@
+Q1: What format specifier does printf use for a double and what does scanf use? Why do they differ?
+	A: printf() uses %f to display a double
+	Scanf() uses %lf to read a double.
+	Printf() received floating point arguments by value, with float automatically promoted to double. Scanf() recieves pointers, so %lf tells it to expect a double, rather than a float.
+	
+Q2: Compute 7/2 and 7.0/2. Why are the different?
+	A: In 7/2 =3 they are both ints, so the decimal goes away
+	7.0/2=3.5 the 7.0 is a double so floating point division occurs.
+
+Q3: What does scanf return when secussful? What if the first conversion fails?
+	A: scanf() returns the number of input items successfully matched and assigned. Valid returns 1, Invalid returns 0
+Q4: What happens when scanj("%d, &x) recieves abc?
+	A: it would fail. You would have to use %c and separate 'a' 'b' and 'c' to get it to interpret aascii into numerical values.
+	
+Q5: Why should conversion functions use double instead of int?
+	A: Its more consistent. Int will cut out all the decimals. 
+	Celsius --> Fahrenheit	F=C*9/5 + 32	fahrenheit = celsius * 9.0 / 5.0 + 32;
+	Miles --> Kilometer	Km=miles*1.609344	Kilometers = miles * 1.609344;
+	Pounds --> Kilograms	Kg=lb*0.45359237	Kilograms = pounds * 0.45359237
+	
+	Psuedo Code
+	START PROGRAM
+	
+	REPEAT
+	    Display the conversion menu:
+	        1. Celsius to Fahrenheit
+	        2. Miles to Kilometers
+	        3. Pounds to Kilograms
+	        0. Exit
+	
+	    Read the user's menu choice
+	
+	    IF the input is invalid
+	        Display an error
+	        Clear the invalid input
+	        Return to the menu
+	    END IF
+	
+	    SWITCH based on the user's choice
+	
+	        CASE 1:
+	            Read Celsius
+	            Validate input
+	            Convert to Fahrenheit
+	            Display result
+	
+	        CASE 2:
+	            Read miles
+	            Validate input
+	            Convert to kilometers
+	            Display result
+	
+	        CASE 3:
+	            Read pounds
+	            Validate input
+	            Convert to kilograms
+	            Display result
+	
+	        CASE 0:
+	            Display goodbye message
+	
+	        DEFAULT:
+	            Display invalid selection message
+	
+	    END SWITCH
+	
+	UNTIL the user selects 0
+	
+	END PROGRAM
+	
+	Snippet of C code with divisions:
+	int integer_result = 7 / 2;
+	double decimal_result = 7.0 / 2;
+	
+	printf("Integer division: %d\n", integer_result);
+	printf("Floating-point division: %.2f\n", decimal_result);
+	
+	
+	Should display:
+	Integer division: 3
+	Floating-point division: 3.50
+	
