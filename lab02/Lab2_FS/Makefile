@@ -1,8 +1,8 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -Werror -std=c11 -MMD -MP
-TARGET = grade_statistics
+TARGET = converter
 
-SRCS = $(wildcard *.c)
+SRCS = converter.c
 OBJS = $(SRCS:.c=.o)
 DEPS = $(SRCS:.c=.d)
 
