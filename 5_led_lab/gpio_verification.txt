@@ -1,0 +1,11 @@
+5-LED Traffic Light - GPIO Verification
+
+GPIO17: Output, HIGH - Red ON
+GPIO27: Output, LOW  - Yellow OFF
+GPIO22: Output, LOW  - Green OFF
+GPIO23: Output, LOW  - Yellow Arrow OFF
+GPIO24: Output, LOW  - Green Arrow OFF
+
+Observed signal: 00001 (Red only)
+
+All five LEDs operated correctly during testing.

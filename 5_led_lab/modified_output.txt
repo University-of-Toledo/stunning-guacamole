@@ -1,0 +1,34 @@
+5-LED Bitwise Traffic Light
+---------------------------
+
+Cycle 1
+Red                       00001
+Red + Green Arrow         10001
+Red + Yellow Arrow        01001
+Red Only                  00001
+Green                     00100
+Yellow                    00010
+Red                       00001
+
+Cycle 2
+Red                       00001
+Red + Green Arrow         10001
+Red + Yellow Arrow        01001
+Red Only                  00001
+Green                     00100
+Yellow                    00010
+Red                       00001
+
+Flashing Yellow Arrow
+Red + Yellow Arrow        01001
+Red Only                  00001
+Red + Yellow Arrow        01001
+Red Only                  00001
+Red + Yellow Arrow        01001
+Red Only                  00001
+Red + Yellow Arrow        01001
+Red Only                  00001
+Red + Yellow Arrow        01001
+Red Only                  00001
+
+Traffic light finished.
