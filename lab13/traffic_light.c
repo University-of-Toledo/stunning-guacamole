@@ -1,8 +1,7 @@
-/**
- * Author: fshaikh
- * Exercise: Lab 13: Traffic Light
- * Description: Controls red, yellow, and green LEDs on a Raspberry Pi using
- *              a data-driven state table and libgpiod.
+/*
+ Author: Fiza Shaikh
+ Exercise: Lab 13: Traffic Light
+ Description: Controls red, yellow, and green LEDs on a Raspberry Pi 
  */
 
 #define _DEFAULT_SOURCE
