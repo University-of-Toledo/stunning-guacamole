@@ -1,0 +1,15 @@
+==1828== Memcheck, a memory error detector
+==1828== Copyright (C) 2002-2024, and GNU GPL'd, by Julian Seward et al.
+==1828== Using Valgrind-3.24.0 and LibVEX; rerun with -h for copyright info
+==1828== Command: ./traffic_light
+==1828== Parent PID: 1827
+==1828== 
+==1828== 
+==1828== HEAP SUMMARY:
+==1828==     in use at exit: 0 bytes in 0 blocks
+==1828==   total heap usage: 12 allocs, 12 frees, 2,814 bytes allocated
+==1828== 
+==1828== All heap blocks were freed -- no leaks are possible
+==1828== 
+==1828== For lists of detected and suppressed errors, rerun with: -s
+==1828== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
