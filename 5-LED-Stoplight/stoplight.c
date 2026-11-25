@@ -1,15 +1,14 @@
 /*
- * stoplight.c  --  Bitwise operators with a 5-LED traffic light
- * Author: fshaikh
- * EET Lab, University of Toledo
- *
- * Wiring:
- *     RED      GPIO 17  (pin 11)
- *     YELLOW   GPIO 27  (pin 13)
- *     GREEN    GPIO 22  (pin 15)
- *     Y_ARROW  GPIO 23  (pin 16)
- *     G_ARROW  GPIO 24  (pin 18)
- *     GND               (pin 14)
+ Author: Fiza Shaikh
+ EET 3150: 5 LED Stop Light
+ 
+ Wiring:
+ RED      GPIO 17  (pin 11)
+ YELLOW   GPIO 27  (pin 13)
+ GREEN    GPIO 22  (pin 15)
+ Y_ARROW  GPIO 23  (pin 16)
+ G_ARROW  GPIO 24  (pin 18)
+ GND               (pin 14)
  */
 
 #include <stdio.h>
@@ -59,7 +58,7 @@ int main(void)
         signal = signal & ~Y_ARROW;
         show("signal & ~Y_ARROW", signal, 1);
 
-        /* Task 4 (Option 4): Read before write using if (signal & GREEN) */
+        /* Read before write using if (signal & GREEN) */
         if (signal & GREEN) {
             printf("GO\n");
         } else {
@@ -81,7 +80,7 @@ int main(void)
         show("Flashing: signal ^ RED", signal, 1);
     }
 
-    /* Task 4 (Option 1): Flash yellow arrow 5 times while red stays on using XOR */
+    /* Flash yellow arrow 5 times while red stays on using XOR */
     signal = RED;
     for (i = 0; i < 5; i++) {
         signal = signal ^ Y_ARROW;
