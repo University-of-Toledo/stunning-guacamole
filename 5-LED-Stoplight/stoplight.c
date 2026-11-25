@@ -1,6 +1,6 @@
 /*
  Author: Fiza Shaikh
- EET 3150: 3 LED Stop Light
+ EET 3150: 5 LED Stop Light
  
  Wiring:
  RED      GPIO 17  (pin 11)
